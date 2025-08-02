@@ -32,6 +32,14 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+    develop:
+      watch: 
+        - path: ./user-service/src
+          target: /app/src
+          action: sync+restart
+        - path: ./user-service/pom.xml
+          target: /app/pom.xml
+          action: rebuild
 
 volumes:
   pgdata:
