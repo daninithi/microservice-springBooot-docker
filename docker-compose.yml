@@ -12,6 +12,8 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docker/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - microservice-network
 
   adminer:
     image: adminer
@@ -20,6 +22,24 @@ services:
       - "8085:8080"
     depends_on:
       - postgres
+    networks:
+      - microservice-network
+    
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - microservice-network
+    develop:
+      watch:
+        - path: ./eureka-server/src
+          target: /app/src
+          action: sync+restart
+        - path: ./eureka-server/pom.xml
+          target: /app/pom.xml
+          action: rebuild
 
   user-service:
     build: ./user-service
@@ -27,11 +47,14 @@ services:
     ports:
       - "8081:8081"
     depends_on:
+      - eureka-server
       - postgres
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/user_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - microservice-network
     develop:
       watch: 
         - path: ./user-service/src
@@ -47,11 +70,16 @@ services:
     ports:
       - "8082:8082"
     depends_on:
+      - eureka-server
+      - user-service
       - postgres
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+    networks:
+      - microservice-network
     develop:
       watch: 
         - path: ./order-service/src
@@ -60,5 +88,28 @@ services:
         - path: ./order-service/pom.xml
           target: /app/pom.xml
           action: rebuild
+    
+  api-gateway-service:
+    build: ./api-gateway-service
+    container_name: api-gateway-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - eureka-server
+    networks:
+      - microservice-network
+    develop:
+      watch:
+        - path: ./api-gateway-service/src
+          target: /app/src
+          action: sync+restart
+        - path: ./api-gateway-service/pom.xml
+          target: /app/pom.xml
+          action: rebuild
+          
 volumes:
   pgdata:
+
+networks:
+  microservice-network:
+    driver: bridge

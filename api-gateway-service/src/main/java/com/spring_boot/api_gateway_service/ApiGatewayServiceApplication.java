@@ -1,4 +1,4 @@
-package com.spring_boot.order_service;
+package com.spring_boot.api_gateway_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,10 +6,10 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-public class OrderServiceApplication {
+public class ApiGatewayServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(OrderServiceApplication.class, args);
+		SpringApplication.run(ApiGatewayServiceApplication.class, args);
 	}
 
 }

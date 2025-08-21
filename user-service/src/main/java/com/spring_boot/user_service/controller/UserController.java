@@ -18,7 +18,7 @@ import com.spring_boot.user_service.exception.ResourceNotFoundException;
 import com.spring_boot.user_service.repository.UserRepository;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 public class UserController {
 	@Autowired
 	private UserRepository userRepository;
