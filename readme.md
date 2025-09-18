@@ -1,227 +1,103 @@
-**Spring Boot Microservices with Docker and PostgreSQL**
-This project demonstrates a simple microservice architecture using Spring Boot, Docker, and PostgreSQL. It consists of three independent services working together, orchestrated by an API Gateway:
+# Spring Boot Microservices with Docker and PostgreSQL
 
-API Gateway: The single entry point for all client requests, responsible for routing, load balancing, and potentially other cross-cutting concerns like authentication.
-
-Eureka Server: The service registry and discovery server for the microservices.
-
-User Service: Manages user-related operations, including a full RESTful CRUD API.
-
-Order Service: Manages order-related operations and communicates with the User Service to fetch user details.
-
-Each service is a standalone Spring Boot application, containerized using Docker, and connects to its own dedicated PostgreSQL database.
-
-- **User Service**: Manages user-related operations.
-  eureka discover client(spring cloud discovery)
-  spring data jpa
-  spring web
-  posgtrs driver
-  springboot dev tools
-  lombok
-- **Order Service**: Manages order-related operations and may communicate with the User Service.
-  eureka discover client(spring cloud discovery)
-  spring data jpa
-  spring web
-  posgtrs driver
-  springboot dev tools
-  lombok
-- **eureka Service**:
-  spring cloud eureka server
-  spring boot dev tools
-- **api-gateway  server:**
-  spring cloud gateway
-  spring cloud netflic eureka client
-
-Each service:
-- Is a standalone Spring Boot application.
-- Will connect to its own PostgreSQL database.
-- Will be containerized using Docker.
+This project demonstrates a complete microservice architecture using Spring Boot, Docker, and PostgreSQL. It features four independent services orchestrated by an API Gateway and managed with a full CI/CD pipeline in Jenkins.
 
 ---
+## Architecture Overview
+This project consists of four core services that work together to provide a simple user and order management system. All external traffic is routed through a single API Gateway, and services discover each other using a Eureka service registry.
 
-##  Project Structure
-spring-boot/
-├── docker-compose.yml           # To define and run multi-container Docker apps
-├── api-gateway/                 # The single entry point for all client requests
+* **API Gateway**: The single entry point for all client requests. It handles routing to the appropriate backend service.
+* **Eureka Server**: The service registry that allows microservices to dynamically register and discover each other.
+* **User Service**: Manages all user-related CRUD operations and connects to its own dedicated PostgreSQL database.
+* **Order Service**: Manages all order-related CRUD operations and connects to its own dedicated PostgreSQL database.
+
+## Core Technologies
+* **Backend**: Java 17, Spring Boot 3
+* **Service Discovery**: Spring Cloud Eureka
+* **API Gateway**: Spring Cloud Gateway
+* **Database**: PostgreSQL
+* **ORM**: Spring Data JPA (Hibernate)
+* **Containerization**: Docker & Docker Compose
+* **CI/CD**: Jenkins (Declarative Pipeline)
+* **Build Tool**: Apache Maven
+
+---
+## Project Structure
+```
+microservice-springBooot-docker/
+├── docker-compose.yml        # Defines and runs the entire multi-container application
+├── Jenkinsfile               # The CI/CD pipeline definition for Jenkins
+├── api-gateway-service/      # Spring Cloud Gateway service
 │   ├── src/
-│   │   └── main/
-│   │       ├── java/com/spring_boot/api_gateway/
-│   │       │   ├── ApiGatewayApplication.java
-│   │       └── resources/
-│   │           └── application.yml
+│   ├── Dockerfile
 │   └── pom.xml
-├── eureka-server/               # The service registry for discovery
+├── eureka-server/            # Spring Cloud Eureka service
 │   ├── src/
-│   │   └── main/
-│   │       ├── java/com/spring_boot/eureka_server/
-│   │       │   └── EurekaServerApplication.java
-│   │       └── resources/
-│   │           └── application.properties
+│   ├── Dockerfile
 │   └── pom.xml
-├── order-service/               # Handles all order-related operations
+├── order-service/            # Order management microservice
 │   ├── src/
-│   │   └── main/
-│   │       ├── java/com/spring_boot/order_service/
-│   │       │   ├── controller/      # REST endpoints for orders
-│   │       │   ├── dto/             # Data transfer objects
-│   │       │   ├── entity/          # JPA entities for orders
-│   │       │   ├── exception/       # Custom exceptions
-│   │       │   └── repository/      # Spring Data JPA repositories
-│   │       └── resources/
-│   │           ├── application.properties
-│   │           └── init.sql
+│   │   └── main/resources/
+│   │       └── data.sql      # Seed data for testing
+│   ├── Dockerfile
 │   └── pom.xml
-└── user-service/                # Handles all user-related operations
+└── user-service/             # User management microservice
     ├── src/
-    │   └── main/
-    │       ├── java/com/spring_boot/user_service/
-    │       │   ├── controller/      # REST endpoints for users
-    │       │   ├── entity/          # JPA entities for users
-    │       │   ├── exception/       # Custom exceptions
-    │       │   └── repository/      # Spring Data JPA repositories
-    │       └── resources/
-    │           ├── application.properties
-    │           └── init.sql
+    │   └── main/resources/
+    │       └── data.sql      # Seed data for testing
+    ├── Dockerfile
     └── pom.xml
+```
 
-
-**Core Components and Features**
-API Gateway: Provides a unified API interface for external clients. It intelligently routes incoming requests to the correct microservice using service discovery.
-
-Service Discovery: Utilizes Spring Cloud Eureka Server to enable dynamic service registration and discovery, allowing services to find each other without hardcoding URLs.
-
-RESTful APIs: The User and Order services expose REST endpoints for CRUD (Create, Read, Update, Delete) operations.
-
-Database: Each microservice is backed by its own dedicated PostgreSQL database.
-
-Containerization: All services and databases are containerized using Docker for isolation and easy deployment.
-
-Orchestration: docker-compose simplifies the management of the multi-container application.
-
-Development Workflow: Docker Compose is configured with volume synchronization (sync+restart and rebuild) for a seamless development experience with hot-reloading.
-
-Global Exception Handling: A centralized exception handler provides consistent JSON error responses for ResourceNotFoundException.
-
-API Documentation: API endpoints are automatically documented via Springdoc and are accessible via Swagger UI.
-
-###  Start with Docker Compose
-
-docker-compose up --build
-This command will:
-  - Build the Docker images for all services.
-  - Create and start the PostgreSQL database containers.
-  - Start the Eureka Server, which will run the discovery server.
-  - Start the User, Order, and API Gateway services, which will register themselves with the Eureka server.
-  - Start Adminer for database management
-
-**Accessing the Services**
-The primary entry point is now the API Gateway. It will route requests to the other services.
-- API Gateway: http://localhost:8000
-- Eureka Dashboard: http://localhost:8761
-- User Service: http://localhost:8081 (Internal, for debugging only)
-- Order Service: http://localhost:8082 (Internal, for debugging only)
-- Adminer: http://localhost:8085 (Connect to postgres_user_db or - - - postgres_order_db using postgres for both user and password).
-
-**API Endpoints via the API Gateway**
-
-The following are the new, single-entry point URLs to access your microservices. The API Gateway will handle the routing internally.
-
-User Service (via Gateway):
-- GET http://localhost:8000/users
-- GET http://localhost:8000/users/{id}
-- POST http://localhost:8000/users
-- PUT http://localhost:8000/users/{id}
-- DELETE http://localhost:8000/users/{id}
-
-Order Service (via Gateway):
-- GET http://localhost:8000/orders
-- POST http://localhost:8000/orders
-- PUT http://localhost:8000/orders/{id}
-- DELETE http://localhost:8000/orders/{id}
-
-##  Progress
-
-1. **Created folder structure** for microservice architecture.
-2. **Initialized two Spring Boot projects** using Spring Initializr:
-    - `user-service` and `order-service`
-3. Each project includes:
-    - Java package structure
-    - `application.properties`
-    - `pom.xml` with necessary dependencies
-4. Created a top-level `docker-compose.yml` file (to be filled later) for managing containers.
-5. Docker Compose Setup
-### docker-compose.yml
-
-- **Postgres service:**
-  - Image: `postgres:latest`
-  - Environment variables:
-    - `POSTGRES_USER=postgres`
-    - `POSTGRES_PASSWORD=postgres`
-  - Ports: maps container's 5432 to host's 5435
-  - Volume for data persistence and running initialization SQL scripts from `./docker/postgres:/docker-entrypoint-initdb.d `
-
-- **Adminer service:**
-  - Image: `adminer`
-  - Port: 8085 (host) → 8080 (container)
-  - Depends on the Postgres container
-
-- **user service:**
-  - Build context: ./user-service
-  - Ports: 8081:8081
-  - Volume Sync (Watch Support):
-      develop:
-        watch:
-          - path: ./user-service/src
-            target: /app/src
-            action: sync+restart
-          - path: ./user-service/pom.xml
-            target: /app/pom.xml
-            action: rebuild
-
-- **order service:**
-  - Build context: ./order-service
-  - Ports: 8082:8082
-  - Volume Sync (Watch Support):
-      develop:
-        watch:
-          - path: ./user-service/src
-            target: /app/src
-            action: sync+restart
-          - path: ./user-service/pom.xml
-            target: /app/pom.xml
-            action: rebuild
 ---
+## Getting Started
 
-6. Database Initialization
--docker/postgres/init.sql
--Spring Boot automatically manages database schema creation and updates using JPA and Hibernate.
- 
- 7. Spring Boot Core Implementation
- Entity class User created with fields: id, name, email
- Repository UserRepository (extends JpaRepository)
- Controller UserController with endpoints:
-        GET /api/users – Get all users
-        GET /api/users/{id} – Get user by ID
-        POST /api/users – Create new user
-        PUT /api/users/{id} – Update user by ID
-        DELETE /api/users/{id} – Delete user by ID
-      
-8. Global Exception Handling
- ResourceNotFoundException class implemented
- GlobalExceptionHandler to handle all exceptions and return JSON responses with:
-        Timestamp
-        Message
-        Details
+### Prerequisites
+* Java 17 (or higher)
+* Docker
+* Docker Compose
+* Apache Maven 3.9+
 
-9. API Documentation
- Swagger UI via Springdoc available at http://localhost:8081/swagger-ui.html
+### How to Run
+The entire application stack can be built and run with a single command from the root directory:
+```bash
+docker-compose up --build
+```
+This command will:
+1.  Build the Docker images for all four microservices.
+2.  Create and start the PostgreSQL database container.
+3.  Start the Eureka Server, User Service, Order Service, and API Gateway.
+4.  Start an Adminer container for easy database management.
 
-- **create discovery server:**
--an eureka server projetc
--dependencies 
-  spring cloud erueka server
-  spring boot dev tools
-  
-- **create apigateway  server:**
-  spring cloud gateway
-  spring cloud netflic eureka client
+---
+## Accessing the Services
+Once running, the services can be accessed at the following URLs:
+
+* **API Gateway**: `http://localhost:8000` (Primary entry point for all API calls)
+* **Eureka Dashboard**: `http://localhost:8761`
+* **Adminer (DB GUI)**: `http://localhost:8085`
+
+#### API Endpoints (via Gateway)
+All API requests should go through the API Gateway on port `8000`.
+
+**User Service (`/users/**`)**
+* `GET http://localhost:8000/users`
+* `GET http://localhost:8000/users/{id}`
+* `POST http://localhost:8000/users`
+* `PUT http://localhost:8000/users/{id}`
+* `DELETE http://localhost:8000/users/{id}`
+
+**Order Service (`/orders/**`)**
+* `GET http://localhost:8000/orders`
+* `GET http://localhost:8000/orders/{id}`
+* `POST http://localhost:8000/orders`
+* `PUT http://localhost:8000/orders/{id}`
+* `DELETE http://localhost:8000/orders/{id}`
+
+---
+## CI/CD Pipeline
+This project includes a `Jenkinsfile` that defines a full Continuous Integration pipeline. When a new commit is pushed to the `main` branch, the pipeline will automatically:
+1.  Build all Docker images.
+2.  Run the entire application stack using Docker Compose.
+3.  Perform an end-to-end integration test.
+4.  Clean up all running containers.
