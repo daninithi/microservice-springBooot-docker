@@ -1,0 +1,87 @@
+pipeline {
+    // This pipeline must run on an agent with Docker and Maven installed.
+    agent any
+
+    tools {
+        // Defines the Maven tool configured in your Jenkins settings.
+        maven 'mvn3.9.11'
+    }
+
+    environment {
+        // Define a consistent image name and a unique container name for this build.
+        IMAGE_NAME = "my-local-app:${env.BUILD_NUMBER}"
+        CONTAINER_NAME = "app-container-${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                echo 'Checking out code from repository...'
+                git branch: 'main', credentialsId: 'github_credentials', url: 'https://github.com/daninithi/microservice-springBooot-docker.git'
+            }
+        }
+          // This stage loops through each service to build its specific image
+        stage('Build All Docker Images') {
+            // steps {
+            //     script {
+            //         // List your microservice directories here
+            //         def services = ['api-gateway-service', 'order-service', 'user-service', 'eureka-server']
+                    
+            //         services.each { service ->
+            //             // This creates a nice sub-stage in the Jenkins UI for each service
+            //             stage("Build Docker: ${service}") {
+            //                 def imageName = "${service}:${env.BUILD_NUMBER}"
+            //                 echo "--- Building image for ${service} with tag ${imageName} ---"
+                            
+            //                 // This is the key: change into the service's directory first!
+            //                 dir(service) {
+            //                     sh "docker build -t ${imageName} ."
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+            steps {
+                echo 'Building all service images using Docker Compose...'
+                // This single command reads your docker-compose.yml and builds all services.
+                sh 'docker-compose build'
+            }
+        }
+        
+        stage('3. Run Services & Integration Test') {
+            steps {
+                script {
+                    // Start all services in the background. The '-d' is for 'detached' mode.
+                    sh 'docker-compose up -d'
+                    
+                    // IMPORTANT: Wait for all services to start and register with Eureka.
+                    echo "Waiting 45 seconds for all microservices to start up..."
+                    sleep 45
+                    
+                    // A simple integration test. This checks if the API Gateway is up.
+                    // You should change the URL to a real endpoint in your gateway.
+                    echo "Running a simple health check against the API Gateway..."
+                    sh 'curl --fail http://localhost:8000/users/1'
+                }
+            }
+        }
+        
+        // We will need to adapt this stage later
+        stage('Test Live Containers') {
+            steps {
+                echo "TODO: Add tests for containers"
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Cleaning up... Stopping and removing all containers.'
+            // This command is critical for cleanup.
+            sh 'docker-compose down'
+            
+            echo 'Cleaning up workspace...'
+            cleanWs()
+        }
+    }
+}
